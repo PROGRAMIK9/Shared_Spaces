@@ -1,0 +1,13 @@
+{
+  "name": "gathercraft",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:server": "npm run dev --workspace=apps/server",
+    "dev": "npx concurrently \"npm run dev:server\" \"npm run dev:web\""
+  }
+}
