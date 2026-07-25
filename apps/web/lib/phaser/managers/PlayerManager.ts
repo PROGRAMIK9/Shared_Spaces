@@ -49,22 +49,22 @@ export class PlayerManager {
     const g = this.scene.add.graphics();
     // Draw shoulders (rotated to face down initially)
     g.fillStyle(colorHex, 1);
-    g.fillRoundedRect(-42, -24, 84, 48, 24);
+    g.fillRoundedRect(-24, -14, 48, 28, 14);
     g.lineStyle(2, 0x000000, 0.4);
-    g.strokeRoundedRect(-42, -24, 84, 48, 24);
+    g.strokeRoundedRect(-24, -14, 48, 28, 14);
     // Draw head
     g.fillStyle(0xffdbac, 1); // skin color
-    g.fillCircle(0, 0, 30);
+    g.fillCircle(0, 0, 16);
     g.lineStyle(2, 0x000000, 0.4);
-    g.strokeCircle(0, 0, 30);
+    g.strokeCircle(0, 0, 16);
     
     // Draw an indicator of direction (nose/visor)
     g.fillStyle(0x000000, 0.5);
-    g.fillRoundedRect(-12, 18, 24, 18, 6);
+    g.fillRoundedRect(-8, 12, 16, 12, 4);
 
     if (isLocal) {
-      g.lineStyle(3, 0xffffff, 0.8);
-      g.strokeCircle(0, 0, 38);
+      g.lineStyle(2, 0xffffff, 0.8);
+      g.strokeCircle(0, 0, 22);
     }
     return g;
   }
@@ -74,9 +74,9 @@ export class PlayerManager {
     const py = tileY * TILE_SIZE + TILE_SIZE / 2;
 
     this.localShadow = this.scene.add
-      .image(0, 24, "shadow")
+      .image(0, 18, "shadow")
       .setAlpha(0.5)
-      .setScale(2.5);
+      .setScale(1.5);
 
     const color = this.getColorForName("You");
     this.localAvatar = this.createAvatarGraphics(color, true);
@@ -155,7 +155,9 @@ export class PlayerManager {
     const dy = targetPy - this.localContainer.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist < 2) {
+    const step = (MOVE_SPEED * delta) / 1000;
+    
+    if (dist <= step) {
       this.localContainer.x = targetPx;
       this.localContainer.y = targetPy;
       this.localTileX = target.x;
@@ -171,7 +173,6 @@ export class PlayerManager {
         const furn = getFurnitureAt(target.x, target.y);
         if (furn && (furn.type === "couch" || furn.type === "desk")) {
           isSitting = true;
-          // Set avatar lower to simulate sitting
           this.localAvatar.y = 8;
         } else {
           this.addIdleBob();
@@ -188,7 +189,6 @@ export class PlayerManager {
       return;
     }
 
-    const step = (MOVE_SPEED * delta) / 1000;
     const nx = dx / dist;
     const ny = dy / dist;
 
@@ -255,9 +255,9 @@ export class PlayerManager {
     const py = tileY * TILE_SIZE + TILE_SIZE / 2;
 
     const shadow = this.scene.add
-      .image(0, 24, "shadow")
+      .image(0, 18, "shadow")
       .setAlpha(0.4)
-      .setScale(2.5);
+      .setScale(1.5);
       
     const color = this.getColorForName(name);
     const avatar = this.createAvatarGraphics(color, false);

@@ -24,9 +24,9 @@ export interface FurnitureDef {
 function generateMapData() {
   const zones: ZoneDef[] = [
     // Offices (Row of 3 on the left)
-    { id: "office_1", label: "Office 1", bounds: { x1: 15, y1: 12, x2: 24, y2: 22 }, doorTile: { x: 19, y: 23 }, color: 0xe2e8f0, labelColor: 0x64748b },
-    { id: "office_2", label: "Office 2", bounds: { x1: 25, y1: 12, x2: 34, y2: 22 }, doorTile: { x: 29, y: 23 }, color: 0xe2e8f0, labelColor: 0x64748b },
-    { id: "office_3", label: "Office 3", bounds: { x1: 35, y1: 12, x2: 44, y2: 22 }, doorTile: { x: 39, y: 23 }, color: 0xe2e8f0, labelColor: 0x64748b },
+    { id: "office_1", label: "Office 1", bounds: { x1: 15, y1: 12, x2: 23, y2: 22 }, doorTile: { x: 19, y: 23 }, color: 0xe2e8f0, labelColor: 0x64748b },
+    { id: "office_2", label: "Office 2", bounds: { x1: 25, y1: 12, x2: 33, y2: 22 }, doorTile: { x: 29, y: 23 }, color: 0xe2e8f0, labelColor: 0x64748b },
+    { id: "office_3", label: "Office 3", bounds: { x1: 35, y1: 12, x2: 43, y2: 22 }, doorTile: { x: 39, y: 23 }, color: 0xe2e8f0, labelColor: 0x64748b },
     
     // Meeting Rooms (Right Side)
     { id: "meeting_large", label: "Boardroom", bounds: { x1: 48, y1: 26, x2: 65, y2: 38 }, doorTile: { x: 47, y: 32 }, color: 0xe2e8f0, labelColor: 0x64748b },
