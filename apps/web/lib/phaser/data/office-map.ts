@@ -15,7 +15,7 @@ export interface ZoneDef {
 export interface FurnitureDef {
   x: number;
   y: number;
-  type: "table" | "desk" | "couch" | "table_round" | "plant" | "bookshelf" | "koi_pond" | "coffee_machine";
+  type: "table" | "desk" | "couch" | "table_round" | "plant" | "bookshelf" | "koi_pond" | "coffee_machine" | "chair";
   color: number;
   width?: number;
   height?: number;
@@ -43,26 +43,41 @@ function generateMapData() {
   
   // Office 1
   furniture.push({ x: 18, y: 16, type: "desk", color: 0xd97706, width: 4, height: 2 });
+  furniture.push({ x: 19, y: 18, type: "chair", color: 0x38bdf8 });
   furniture.push({ x: 23, y: 13, type: "plant", color: 0x16a34a });
   // Office 2
   furniture.push({ x: 28, y: 16, type: "desk", color: 0xd97706, width: 4, height: 2 });
+  furniture.push({ x: 29, y: 18, type: "chair", color: 0x38bdf8 });
   furniture.push({ x: 33, y: 13, type: "plant", color: 0x16a34a });
   // Office 3
   furniture.push({ x: 38, y: 16, type: "desk", color: 0xd97706, width: 4, height: 2 });
+  furniture.push({ x: 39, y: 18, type: "chair", color: 0x38bdf8 });
   furniture.push({ x: 43, y: 13, type: "plant", color: 0x16a34a });
 
   // Team Area (Banks of Desks)
   for (let row = 0; row < 2; row++) {
     for (let col = 0; col < 3; col++) {
       furniture.push({ x: 18 + col * 8, y: 30 + row * 8, type: "desk", color: 0xd97706, width: 4, height: 2 });
+      furniture.push({ x: 19 + col * 8, y: 32 + row * 8, type: "chair", color: 0x3b82f6 }); // bottom chair
+      furniture.push({ x: 19 + col * 8, y: 29 + row * 8, type: "chair", color: 0x3b82f6 }); // top chair
     }
   }
   
   // Large Meeting Room
   furniture.push({ x: 52, y: 30, type: "table", color: 0xfef08a, width: 8, height: 4 });
+  for (let i = 0; i < 4; i++) {
+    furniture.push({ x: 53 + i * 2, y: 29, type: "chair", color: 0x475569 }); // Top chairs
+    furniture.push({ x: 53 + i * 2, y: 34, type: "chair", color: 0x475569 }); // Bottom chairs
+  }
+  furniture.push({ x: 51, y: 31, type: "chair", color: 0x475569 }); // Left chair
+  furniture.push({ x: 60, y: 31, type: "chair", color: 0x475569 }); // Right chair
   
   // Casual Meeting Room
   furniture.push({ x: 55, y: 16, type: "table_round", color: 0xe2e8f0 });
+  furniture.push({ x: 54, y: 16, type: "chair", color: 0xf59e0b });
+  furniture.push({ x: 56, y: 16, type: "chair", color: 0xf59e0b });
+  furniture.push({ x: 55, y: 15, type: "chair", color: 0xf59e0b });
+  furniture.push({ x: 55, y: 17, type: "chair", color: 0xf59e0b });
   furniture.push({ x: 62, y: 13, type: "bookshelf", color: 0x1e293b, width: 2, height: 1 });
 
   // Lobby
@@ -139,7 +154,7 @@ export function generateCollisionGrid(): number[][] {
         const fx = f.x + dx;
         const fy = f.y + dy;
         if (fx >= 0 && fx < MAP_WIDTH && fy >= 0 && fy < MAP_HEIGHT) {
-          if (f.type !== "couch" && f.type !== "desk") {
+          if (f.type !== "couch" && f.type !== "desk" && f.type !== "chair") {
             grid[fy][fx] = 1;
           }
         }

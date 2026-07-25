@@ -232,6 +232,17 @@ export class MapManager {
           }
           break;
         }
+        case "chair": {
+          gfx.fillStyle(0x000000, 0.3);
+          gfx.fillRect(px + 8, py + 12, TILE_SIZE - 16, TILE_SIZE - 14);
+          
+          gfx.fillStyle(0x1e293b, 1); // Dark base
+          gfx.fillRoundedRect(px + 12, py + 16, TILE_SIZE - 24, TILE_SIZE - 24, 4);
+          
+          gfx.fillStyle(f.color, 1); // Custom seat color
+          gfx.fillRoundedRect(px + 10, py + 10, TILE_SIZE - 20, TILE_SIZE - 20, 6);
+          break;
+        }
         case "couch": {
           gfx.fillStyle(0x000000, 0.3);
           gfx.fillRect(px + 2, py + 8, pw - 4, ph - 6);

@@ -171,7 +171,7 @@ export class PlayerManager {
         this.isMoving = false;
         
         const furn = getFurnitureAt(target.x, target.y);
-        if (furn && (furn.type === "couch" || furn.type === "desk")) {
+        if (furn && (furn.type === "couch" || furn.type === "desk" || furn.type === "chair")) {
           isSitting = true;
           this.localAvatar.y = 8;
         } else {
@@ -362,7 +362,7 @@ export class PlayerManager {
         const tileX = Math.floor(remote.container.x / TILE_SIZE);
         const tileY = Math.floor(remote.container.y / TILE_SIZE);
         const furn = getFurnitureAt(tileX, tileY);
-        if (furn && (furn.type === "couch" || furn.type === "desk")) {
+        if (furn && (furn.type === "couch" || furn.type === "desk" || furn.type === "chair")) {
           remote.avatar.y = 8;
         } else {
           remote.avatar.y = Math.sin(Date.now() / 150) * 0.5; // slight idle bob
