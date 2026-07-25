@@ -13,8 +13,8 @@ interface RemotePlayerSprite {
   targetY: number;
 }
 
-const MOVE_SPEED = 120; // pixels per second
-const LERP_FACTOR = 0.12;
+const MOVE_SPEED = 480; // pixels per second
+const LERP_FACTOR = 0.35;
 
 export class PlayerManager {
   private scene: GameScene;
@@ -49,22 +49,22 @@ export class PlayerManager {
     const g = this.scene.add.graphics();
     // Draw shoulders (rotated to face down initially)
     g.fillStyle(colorHex, 1);
-    g.fillRoundedRect(-14, -8, 28, 16, 8);
-    g.lineStyle(2, 0x000000, 0.3);
-    g.strokeRoundedRect(-14, -8, 28, 16, 8);
+    g.fillRoundedRect(-42, -24, 84, 48, 24);
+    g.lineStyle(2, 0x000000, 0.4);
+    g.strokeRoundedRect(-42, -24, 84, 48, 24);
     // Draw head
     g.fillStyle(0xffdbac, 1); // skin color
-    g.fillCircle(0, 0, 10);
-    g.lineStyle(2, 0x000000, 0.3);
-    g.strokeCircle(0, 0, 10);
+    g.fillCircle(0, 0, 30);
+    g.lineStyle(2, 0x000000, 0.4);
+    g.strokeCircle(0, 0, 30);
     
     // Draw an indicator of direction (nose/visor)
     g.fillStyle(0x000000, 0.5);
-    g.fillRoundedRect(-4, 6, 8, 6, 2);
+    g.fillRoundedRect(-12, 18, 24, 18, 6);
 
     if (isLocal) {
-      g.lineStyle(2, 0xffffff, 0.8);
-      g.strokeCircle(0, 0, 13);
+      g.lineStyle(3, 0xffffff, 0.8);
+      g.strokeCircle(0, 0, 38);
     }
     return g;
   }
@@ -74,20 +74,20 @@ export class PlayerManager {
     const py = tileY * TILE_SIZE + TILE_SIZE / 2;
 
     this.localShadow = this.scene.add
-      .image(0, 10, "shadow")
-      .setAlpha(0.4)
-      .setScale(0.9);
+      .image(0, 24, "shadow")
+      .setAlpha(0.5)
+      .setScale(2.5);
 
     const color = this.getColorForName("You");
     this.localAvatar = this.createAvatarGraphics(color, true);
 
     this.localNameTag = this.scene.add
-      .text(0, 18, "You", {
+      .text(0, 20, "You", {
         fontFamily: "'Inter', 'Segoe UI', sans-serif",
-        fontSize: "9px",
-        color: "#c4b5fd",
-        stroke: "#0d0b1a",
-        strokeThickness: 2,
+        fontSize: "10px",
+        color: "#ffffff",
+        backgroundColor: "rgba(30, 30, 30, 0.85)",
+        padding: { x: 6, y: 3 },
       })
       .setOrigin(0.5);
 
@@ -255,19 +255,19 @@ export class PlayerManager {
     const py = tileY * TILE_SIZE + TILE_SIZE / 2;
 
     const shadow = this.scene.add
-      .image(0, 10, "shadow")
-      .setAlpha(0.3)
-      .setScale(0.9);
+      .image(0, 24, "shadow")
+      .setAlpha(0.4)
+      .setScale(2.5);
       
     const color = this.getColorForName(name);
     const avatar = this.createAvatarGraphics(color, false);
     const nameTag = this.scene.add
-      .text(0, 18, name, {
+      .text(0, 20, name, {
         fontFamily: "'Inter', 'Segoe UI', sans-serif",
-        fontSize: "9px",
-        color: "#5eead4",
-        stroke: "#0d0b1a",
-        strokeThickness: 2,
+        fontSize: "10px",
+        color: "#ffffff",
+        backgroundColor: "rgba(30, 30, 30, 0.85)",
+        padding: { x: 6, y: 3 },
       })
       .setOrigin(0.5);
 
@@ -378,6 +378,14 @@ export class PlayerManager {
   getLocalPlayerPixelPos(): { x: number; y: number } | null {
     if (!this.localContainer) return null;
     return { x: this.localContainer.x, y: this.localContainer.y };
+  }
+
+  getIsMoving(): boolean {
+    return this.isMoving;
+  }
+
+  getLocalContainer(): Phaser.GameObjects.Container {
+    return this.localContainer;
   }
 
   getRemotePlayerPixelPos(

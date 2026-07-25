@@ -9,6 +9,7 @@ import {
   TILE_SIZE,
   getZoneAtTile,
   generateCollisionGrid,
+  ZONES,
 } from "../data/office-map";
 
 export class GameScene extends Phaser.Scene {
@@ -17,6 +18,7 @@ export class GameScene extends Phaser.Scene {
   private playerManager!: PlayerManager;
   private currentZone: string = "main";
   private collisionGrid!: number[][];
+  private openDoors: Set<string> = new Set();
 
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private wasd!: {
@@ -61,27 +63,57 @@ export class GameScene extends Phaser.Scene {
 
     this.setupEventListeners();
 
+    this.cameras.main.setBounds(0, 0, MAP_WIDTH * TILE_SIZE, MAP_HEIGHT * TILE_SIZE);
+    this.cameras.main.startFollow(this.playerManager.getLocalContainer(), true, 0.1, 0.1);
+    this.cameras.main.setZoom(1.2);
+
+    this.input.on("wheel", (pointer: Phaser.Input.Pointer, gameObjects: any, deltaX: number, deltaY: number, deltaZ: number) => {
+      let newZoom = this.cameras.main.zoom - deltaY * 0.001;
+      newZoom = Phaser.Math.Clamp(newZoom, 0.8, 1.5);
+      this.cameras.main.zoom = newZoom;
+    });
+
     gameEventBus.emit("scene-ready", {});
   }
 
   update(time: number, delta: number): void {
     this.playerManager.update(delta);
     this.handleKeyboardMovement(time);
+    this.handleDoors();
   }
+
+  private handleDoors(): void {
+    const localTile = this.playerManager.getLocalPlayerTile();
+    if (!localTile) return;
+
+    for (const zone of ZONES) {
+      if (zone.doorTile.x < 0) continue;
+      
+      const dist = Math.abs(localTile.tileX - zone.doorTile.x) + Math.abs(localTile.tileY - zone.doorTile.y);
+      const isNear = dist <= 2;
+      const isOpen = this.openDoors.has(zone.id);
+
+      if (isNear && !isOpen) {
+        this.openDoors.add(zone.id);
+        this.mapManager.openDoor(zone.id);
+      } else if (!isNear && isOpen) {
+        this.openDoors.delete(zone.id);
+        this.mapManager.closeDoor(zone.id);
+      }
+    }
+  }
+
+  private isCalculatingPath = false;
 
   private handleKeyboardMovement(time: number): void {
     if (!this.cursors || !this.wasd) return;
     
-    // Prevent moving too rapidly via keyboard (throttle to ~150ms)
-    if (time < this.moveTimer) return;
+    // Completely prevent jitter by ensuring we only process one movement/path at a time
+    if (this.playerManager.getIsMoving() || this.isCalculatingPath) return;
 
-    // Only allow initiating a new move if we are mostly stationary or just finished a tile move
-    // We can rely on PlayerManager's current position
     const localPos = this.playerManager.getLocalPlayerTile();
     if (!localPos) return;
 
-    // Check if playerManager is actively moving a long path
-    // For simplicity, we just allow keyboard to override with a 1-tile path if pressed
     let dx = 0;
     let dy = 0;
 
@@ -101,13 +133,14 @@ export class GameScene extends Phaser.Scene {
         targetY < MAP_HEIGHT &&
         this.collisionGrid[targetY][targetX] === 0
       ) {
-        this.moveTimer = time + 200; // Delay between grid movements
+        this.isCalculatingPath = true;
         this.pathfinding.findPath(
           localPos.tileX,
           localPos.tileY,
           targetX,
           targetY,
           (path) => {
+            this.isCalculatingPath = false;
             if (path && path.length > 1) {
               this.playerManager.moveLocalPlayerAlongPath(path);
               gameEventBus.emit("local-player-moved", {

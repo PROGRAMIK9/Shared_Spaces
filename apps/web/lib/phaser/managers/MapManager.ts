@@ -12,83 +12,45 @@ import {
 
 export class MapManager {
   private scene: Phaser.Scene;
+  private doorGraphics: Map<string, Phaser.GameObjects.Graphics> = new Map();
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
   }
 
   drawMap(collisionGrid: number[][]): void {
-    this.drawFloor(collisionGrid);
-    this.drawZoneHighlights();
+    this.drawFloor();
     this.drawWalls(collisionGrid);
     this.drawFurniture();
-    this.drawGridLines();
+    this.drawDoors();
     this.drawZoneLabels();
-    this.drawDoorGlows();
   }
 
-  private drawFloor(_collisionGrid: number[][]): void {
+  private drawFloor(): void {
     const gfx = this.scene.add.graphics();
     gfx.setDepth(0);
 
     for (let y = 0; y < MAP_HEIGHT; y++) {
       for (let x = 0; x < MAP_WIDTH; x++) {
-        const isAlt = (x + y) % 2 === 0;
         const zone = getZoneAtTile(x, y);
+
+        // White base floor
+        let color = COLORS.FLOOR_A; 
 
         if (zone) {
           const zoneDef = ZONES.find((z) => z.id === zone);
           if (zoneDef) {
-            const baseColor = zoneDef.color;
-            const r = ((baseColor >> 16) & 0xff) * (isAlt ? 0.3 : 0.25);
-            const g = ((baseColor >> 8) & 0xff) * (isAlt ? 0.3 : 0.25);
-            const b = (baseColor & 0xff) * (isAlt ? 0.3 : 0.25);
-            const dimmed =
-              (Math.floor(r) << 16) |
-              (Math.floor(g) << 8) |
-              Math.floor(b);
-            gfx.fillStyle(dimmed, 1);
+            color = zoneDef.color;
           }
-        } else {
-          // Add subtle checkerboard to main floor
-          const r = isAlt ? 248 : 241;
-          const g = isAlt ? 250 : 245;
-          const b = isAlt ? 252 : 249;
-          gfx.fillStyle((r << 16) | (g << 8) | b, 1);
         }
 
+        gfx.fillStyle(color, 1);
         gfx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
-        
-        // Add subtle dot pattern to all floors
-        gfx.fillStyle(0x000000, 0.03);
-        gfx.fillCircle(x * TILE_SIZE + TILE_SIZE / 2, y * TILE_SIZE + TILE_SIZE / 2, 2);
+
+        // Very light grey grid lines
+        gfx.lineStyle(1, COLORS.GRID_LINE, 1);
+        gfx.strokeRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
       }
-    }
-  }
-
-  private drawZoneHighlights(): void {
-    for (const zone of ZONES) {
-      const b = zone.bounds;
-      const gfx = this.scene.add.graphics();
-      gfx.setDepth(1);
-
-      gfx.lineStyle(2, zone.color, 0.4);
-      gfx.strokeRoundedRect(
-        b.x1 * TILE_SIZE + 2,
-        b.y1 * TILE_SIZE + 2,
-        (b.x2 - b.x1 + 1) * TILE_SIZE - 4,
-        (b.y2 - b.y1 + 1) * TILE_SIZE - 4,
-        6
-      );
-
-      gfx.fillStyle(zone.color, 0.06);
-      gfx.fillRoundedRect(
-        b.x1 * TILE_SIZE + 2,
-        b.y1 * TILE_SIZE + 2,
-        (b.x2 - b.x1 + 1) * TILE_SIZE - 4,
-        (b.y2 - b.y1 + 1) * TILE_SIZE - 4,
-        6
-      );
     }
   }
 
@@ -99,6 +61,15 @@ export class MapManager {
     for (let y = 0; y < MAP_HEIGHT; y++) {
       for (let x = 0; x < MAP_WIDTH; x++) {
         if (collisionGrid[y][x] !== 1) continue;
+        
+        let isDoor = false;
+        for (const z of ZONES) {
+          if (z.doorTile.x === x && z.doorTile.y === y) {
+            isDoor = true;
+            break;
+          }
+        }
+        if (isDoor) continue;
 
         const furniture = getFurnitureAt(x, y);
         if (furniture) continue;
@@ -106,34 +77,86 @@ export class MapManager {
         const px = x * TILE_SIZE;
         const py = y * TILE_SIZE;
 
-        gfx.fillStyle(COLORS.WALL, 1);
-        gfx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-
         const hasFloorBelow =
           y + 1 < MAP_HEIGHT && collisionGrid[y + 1][x] === 0;
           
-        // Draw the main wall body
-        gfx.fillStyle(COLORS.WALL, 1);
+        gfx.fillStyle(COLORS.WALL, 1); 
         gfx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
         
-        // Give walls a top edge highlight
-        gfx.fillStyle(0xffffff, 0.6);
-        gfx.fillRect(px, py, TILE_SIZE, 3);
+        gfx.fillStyle(0x78716c, 1); // Darker top edge
+        gfx.fillRect(px, py, TILE_SIZE, 4);
+        
+        // Simulating glass walls (like the screenshot) for walls that have floor above them
+        const hasFloorAbove = y - 1 >= 0 && collisionGrid[y - 1][x] === 0;
+        if (hasFloorBelow && hasFloorAbove) {
+           gfx.fillStyle(0x38bdf8, 0.4); // light blue glass
+           gfx.fillRect(px + 4, py + 4, TILE_SIZE - 8, TILE_SIZE - 16);
+           gfx.lineStyle(2, 0x0284c7, 0.8);
+           gfx.strokeRect(px + 4, py + 4, TILE_SIZE - 8, TILE_SIZE - 16);
+        }
         
         if (hasFloorBelow) {
-          gfx.fillStyle(COLORS.WALL_FACE, 1);
-          // Make the face pop more
+          gfx.fillStyle(COLORS.WALL_FACE, 1); 
           gfx.fillRect(px, py + TILE_SIZE - 12, TILE_SIZE, 12);
           
-          // Add a shadow cast on the floor below
-          gfx.fillStyle(0x000000, 0.15);
-          gfx.fillRect(px, py + TILE_SIZE, TILE_SIZE, 6);
+          gfx.fillStyle(0x000000, 0.2);
+          gfx.fillRect(px, py + TILE_SIZE, TILE_SIZE, 8);
         }
-
-        gfx.lineStyle(1, 0x1a1838, 0.3);
-        gfx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
       }
     }
+  }
+
+  private drawDoors(): void {
+    for (const zone of ZONES) {
+      if (zone.doorTile.x < 0) continue;
+
+      const px = zone.doorTile.x * TILE_SIZE;
+      const py = zone.doorTile.y * TILE_SIZE;
+
+      const door = this.scene.add.graphics();
+      door.setDepth(2.1);
+      
+      door.fillStyle(0x8b5cf6, 1); // Purple door
+      door.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+      door.lineStyle(2, 0x4c1d95, 1);
+      door.strokeRect(0, 0, TILE_SIZE, TILE_SIZE);
+      
+      door.fillStyle(0x38bdf8, 0.6);
+      door.fillRect(4, 4, TILE_SIZE - 8, TILE_SIZE / 2);
+
+      door.setPosition(px, py);
+      
+      this.doorGraphics.set(zone.id, door);
+    }
+  }
+
+  public openDoor(zoneId: string): void {
+    const door = this.doorGraphics.get(zoneId);
+    if (!door) return;
+    
+    this.scene.tweens.add({
+      targets: door,
+      x: door.x + TILE_SIZE - 4,
+      alpha: 0.5,
+      duration: 300,
+      ease: "Quad.easeOut",
+    });
+  }
+
+  public closeDoor(zoneId: string): void {
+    const door = this.doorGraphics.get(zoneId);
+    if (!door) return;
+
+    const zone = ZONES.find(z => z.id === zoneId);
+    if (!zone) return;
+    
+    this.scene.tweens.add({
+      targets: door,
+      x: zone.doorTile.x * TILE_SIZE,
+      alpha: 1,
+      duration: 300,
+      ease: "Quad.easeOut",
+    });
   }
 
   private drawFurniture(): void {
@@ -149,113 +172,129 @@ export class MapManager {
       gfx.setDepth(3);
 
       switch (f.type) {
-        case "table": {
-          gfx.fillStyle(0x000000, 0.2);
-          gfx.fillRoundedRect(px + 4, py + 6, pw - 8, ph - 4, 4);
-          gfx.fillStyle(f.color, 1);
-          gfx.fillRoundedRect(px + 4, py + 4, pw - 8, ph - 6, 4);
-          gfx.lineStyle(1, 0xffffff, 0.1);
-          gfx.strokeRoundedRect(px + 4, py + 4, pw - 8, ph - 6, 4);
+        case "desk": {
+          gfx.fillStyle(0x000000, 0.3);
+          gfx.fillRect(px + 4, py + 12, pw - 8, ph - 10);
+          
+          gfx.fillStyle(0xb45309, 1); // Amber
+          gfx.fillRect(px + 2, py + 2, pw - 4, ph - 12);
+          
+          gfx.fillStyle(0xd97706, 1); 
+          gfx.fillRect(px + 2, py + 2, pw - 4, 4);
+          
+          gfx.fillStyle(0x1e293b, 1);
+          gfx.fillRect(px + 6, py + 4, pw / 2 - 8, 8);
+          gfx.fillStyle(0x38bdf8, 0.4);
+          gfx.fillRect(px + 7, py + 5, pw / 2 - 10, 6);
+          
+          gfx.fillStyle(0x000000, 0.4);
+          gfx.fillCircle(px + pw / 2, py + ph - 2, 8); 
+          
+          gfx.fillStyle(0x334155, 1);
+          gfx.fillRoundedRect(px + pw / 2 - 8, py + ph - 8, 16, 12, 4); 
+          gfx.fillStyle(0x475569, 1);
+          gfx.fillRoundedRect(px + pw / 2 - 8, py + ph - 8, 16, 4, 2); 
+          
+          gfx.fillStyle(0x1e293b, 1);
+          gfx.fillRoundedRect(px + pw / 2 - 6, py + ph - 2, 12, 4, 2); 
           break;
         }
-        case "desk": {
-          gfx.fillStyle(0x000000, 0.2);
-          gfx.fillRoundedRect(px + 4, py + 6, pw - 8, ph - 6, 3);
-          gfx.fillStyle(f.color, 1);
-          gfx.fillRoundedRect(px + 4, py + 4, pw - 8, ph - 6, 3);
-          // Monitor on desk
-          gfx.fillStyle(0x334155, 1);
-          gfx.fillRoundedRect(px + 8, py + 6, pw - 16, ph - 16, 2);
-          gfx.fillStyle(0x60a5fa, 0.3);
-          gfx.fillRoundedRect(px + 9, py + 7, pw - 18, ph - 18, 1);
+        case "plant": {
+          gfx.fillStyle(0x000000, 0.3);
+          gfx.fillCircle(px + pw / 2, py + ph - 6, 10);
+          
+          gfx.fillStyle(0x78350f, 1);
+          gfx.fillRoundedRect(px + pw / 2 - 10, py + ph - 20, 20, 16, 4);
+          gfx.fillStyle(0x92400e, 1);
+          gfx.fillRoundedRect(px + pw / 2 - 10, py + ph - 20, 20, 4, 2);
+          
+          gfx.fillStyle(0x166534, 1);
+          gfx.fillCircle(px + pw / 2 - 8, py + ph - 24, 10);
+          gfx.fillCircle(px + pw / 2 + 8, py + ph - 22, 9);
+          gfx.fillCircle(px + pw / 2, py + ph - 30, 12);
+          
+          gfx.fillStyle(0x22c55e, 1);
+          gfx.fillCircle(px + pw / 2 - 6, py + ph - 26, 6);
+          gfx.fillCircle(px + pw / 2 + 6, py + ph - 24, 5);
+          gfx.fillCircle(px + pw / 2, py + ph - 30, 8);
+          break;
+        }
+        case "table": {
+          gfx.fillStyle(0x000000, 0.3);
+          gfx.fillRect(px + 4, py + 12, pw - 8, ph - 10);
+          gfx.fillStyle(0x475569, 1); 
+          gfx.fillRect(px + 4, py + 4, pw - 8, ph - 12);
+          
+          for (let i = 0; i < (w - 2); i += 2) {
+            gfx.fillStyle(0xef4444, 1);
+            gfx.fillRoundedRect(px + 32 + (i * TILE_SIZE), py - 6, 16, 12, 4);
+            gfx.fillRoundedRect(px + 32 + (i * TILE_SIZE), py + ph - 10, 16, 12, 4);
+          }
           break;
         }
         case "couch": {
-          gfx.fillStyle(0x000000, 0.15);
-          gfx.fillRoundedRect(px + 2, py + 5, pw - 4, ph - 4, 6);
+          gfx.fillStyle(0x000000, 0.3);
+          gfx.fillRect(px + 2, py + 8, pw - 4, ph - 6);
           gfx.fillStyle(f.color, 1);
           gfx.fillRoundedRect(px + 2, py + 2, pw - 4, ph - 4, 6);
-          gfx.fillStyle(Phaser.Display.Color.IntegerToColor(f.color).brighten(20).color, 1);
+          gfx.fillStyle(Phaser.Display.Color.IntegerToColor(f.color).brighten(15).color, 1);
           gfx.fillRoundedRect(px + 6, py + 6, pw - 12, ph - 10, 3);
           break;
         }
         case "table_round": {
-          gfx.fillStyle(0x000000, 0.2);
-          gfx.fillCircle(
-            px + TILE_SIZE / 2,
-            py + TILE_SIZE / 2 + 2,
-            TILE_SIZE / 3
-          );
-          gfx.fillStyle(f.color, 1);
-          gfx.fillCircle(
-            px + TILE_SIZE / 2,
-            py + TILE_SIZE / 2,
-            TILE_SIZE / 3
-          );
-          gfx.lineStyle(1, 0xffffff, 0.1);
-          gfx.strokeCircle(
-            px + TILE_SIZE / 2,
-            py + TILE_SIZE / 2,
-            TILE_SIZE / 3
-          );
+          gfx.fillStyle(0x000000, 0.3);
+          gfx.fillCircle(px + TILE_SIZE / 2, py + TILE_SIZE / 2 + 6, TILE_SIZE / 2.5);
+          gfx.fillStyle(0xf8fafc, 1);
+          gfx.fillCircle(px + TILE_SIZE / 2, py + TILE_SIZE / 2, TILE_SIZE / 2.5);
           break;
         }
-        case "plant": {
-          gfx.fillStyle(0x3f3f2e, 1);
-          gfx.fillRoundedRect(
-            px + TILE_SIZE / 2 - 5,
-            py + TILE_SIZE / 2 + 2,
-            10,
-            12,
-            2
-          );
-          gfx.fillStyle(f.color, 1);
-          gfx.fillCircle(px + TILE_SIZE / 2, py + TILE_SIZE / 2 - 2, 9);
-          gfx.fillStyle(
-            Phaser.Display.Color.IntegerToColor(f.color).brighten(30).color,
-            1
-          );
-          gfx.fillCircle(px + TILE_SIZE / 2 - 3, py + TILE_SIZE / 2 - 5, 5);
+        case "koi_pond": {
+          // Koi Pond
+          gfx.fillStyle(0x475569, 1); // stones
+          gfx.fillRoundedRect(px + 4, py + 4, pw - 8, ph - 8, 16);
+          gfx.fillStyle(0x0284c7, 0.8); // water
+          gfx.fillRoundedRect(px + 12, py + 12, pw - 24, ph - 24, 12);
+          
+          // Koi fish
+          gfx.fillStyle(0xf97316, 1);
+          gfx.fillCircle(px + 24, py + 24, 4);
+          gfx.fillCircle(px + pw - 24, py + ph - 24, 4);
+          
+          // Lily pads
+          gfx.fillStyle(0x15803d, 1);
+          gfx.fillCircle(px + 20, py + ph - 20, 8);
+          gfx.fillCircle(px + pw - 20, py + 20, 6);
           break;
         }
-        case "bookshelf": {
-          gfx.fillStyle(f.color, 1);
-          gfx.fillRect(px + 2, py + 2, pw - 4, ph - 4);
-          // Books
-          const bookColors = [0xe11d48, 0x2563eb, 0x16a34a, 0xd97706];
-          for (let i = 0; i < 4; i++) {
-            gfx.fillStyle(bookColors[i], 1);
-            gfx.fillRect(px + 4 + i * 6, py + 4, 5, ph - 10);
-          }
+        case "coffee_machine": {
+          // Kitchen Counter
+          gfx.fillStyle(0x000000, 0.3);
+          gfx.fillRect(px, py + 8, pw, ph - 4);
+          gfx.fillStyle(0x334155, 1);
+          gfx.fillRect(px, py, pw, ph - 8);
+          gfx.fillStyle(0x1e293b, 1);
+          gfx.fillRect(px, py, pw, 4);
+          
+          // Machine
+          gfx.fillStyle(0x94a3b8, 1);
+          gfx.fillRect(px + 12, py + 4, 24, ph - 16);
+          gfx.fillStyle(0x0f172a, 1);
+          gfx.fillRect(px + 16, py + 8, 16, 8);
           break;
         }
       }
     }
   }
 
-  private drawGridLines(): void {
-    const gfx = this.scene.add.graphics();
-    gfx.setDepth(1);
-    gfx.lineStyle(1, COLORS.GRID_LINE, 0.15);
-
-    for (let x = 0; x <= MAP_WIDTH; x++) {
-      gfx.moveTo(x * TILE_SIZE, 0);
-      gfx.lineTo(x * TILE_SIZE, MAP_HEIGHT * TILE_SIZE);
-    }
-    for (let y = 0; y <= MAP_HEIGHT; y++) {
-      gfx.moveTo(0, y * TILE_SIZE);
-      gfx.lineTo(MAP_WIDTH * TILE_SIZE, y * TILE_SIZE);
-    }
-    gfx.strokePath();
-  }
-
   private drawZoneLabels(): void {
     for (const zone of ZONES) {
+      if (zone.id === "break_area") continue;
+      
       const b = zone.bounds;
       const centerX = ((b.x1 + b.x2 + 1) / 2) * TILE_SIZE;
-      const topY = b.y1 * TILE_SIZE + 8;
+      const topY = b.y1 * TILE_SIZE + 4;
 
-      const label = this.scene.add
+      this.scene.add
         .text(centerX, topY, zone.label, {
           fontFamily: "'Inter', 'Segoe UI', sans-serif",
           fontSize: "10px",
@@ -264,39 +303,7 @@ export class MapManager {
         })
         .setOrigin(0.5, 0)
         .setDepth(5)
-        .setAlpha(0.7);
-
-      this.scene.tweens.add({
-        targets: label,
-        alpha: { from: 0.5, to: 0.8 },
-        duration: 2000,
-        yoyo: true,
-        repeat: -1,
-        ease: "Sine.easeInOut",
-      });
-    }
-  }
-
-  private drawDoorGlows(): void {
-    for (const zone of ZONES) {
-      if (zone.doorTile.x < 0) continue;
-
-      const px = zone.doorTile.x * TILE_SIZE + TILE_SIZE / 2;
-      const py = zone.doorTile.y * TILE_SIZE + TILE_SIZE / 2;
-
-      const glow = this.scene.add.graphics();
-      glow.setDepth(2);
-      glow.fillStyle(COLORS.DOOR_GLOW, 0.15);
-      glow.fillCircle(px, py, TILE_SIZE / 2);
-
-      this.scene.tweens.add({
-        targets: glow,
-        alpha: { from: 0.4, to: 1 },
-        duration: 1500,
-        yoyo: true,
-        repeat: -1,
-        ease: "Sine.easeInOut",
-      });
+        .setAlpha(0.8);
     }
   }
 }

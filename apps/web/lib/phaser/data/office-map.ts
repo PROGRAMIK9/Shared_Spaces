@@ -1,6 +1,7 @@
-export const MAP_WIDTH = 30;
-export const MAP_HEIGHT = 20;
-export const TILE_SIZE = 32;
+export const NUMBER_OF_EMPLOYEES = 24;
+export const MAP_WIDTH = 70;
+export const MAP_HEIGHT = 50;
+export const TILE_SIZE = 48;
 
 export interface ZoneDef {
   id: string;
@@ -11,95 +12,87 @@ export interface ZoneDef {
   labelColor: number;
 }
 
-export const ZONES: ZoneDef[] = [
-  {
-    id: "room_a",
-    label: "Meeting A",
-    bounds: { x1: 1, y1: 1, x2: 5, y2: 5 },
-    doorTile: { x: 6, y: 3 },
-    color: 0x4f46e5,
-    labelColor: 0x818cf8,
-  },
-  {
-    id: "room_b",
-    label: "Meeting B",
-    bounds: { x1: 24, y1: 1, x2: 28, y2: 5 },
-    doorTile: { x: 23, y: 3 },
-    color: 0x0891b2,
-    labelColor: 0x22d3ee,
-  },
-  {
-    id: "room_c",
-    label: "Focus C",
-    bounds: { x1: 1, y1: 14, x2: 5, y2: 18 },
-    doorTile: { x: 6, y: 16 },
-    color: 0x7c3aed,
-    labelColor: 0xa78bfa,
-  },
-  {
-    id: "room_d",
-    label: "Focus D",
-    bounds: { x1: 24, y1: 14, x2: 28, y2: 18 },
-    doorTile: { x: 23, y: 16 },
-    color: 0x059669,
-    labelColor: 0x34d399,
-  },
-  {
-    id: "lounge",
-    label: "Lounge",
-    bounds: { x1: 11, y1: 8, x2: 18, y2: 12 },
-    doorTile: { x: -1, y: -1 },
-    color: 0xd97706,
-    labelColor: 0xfbbf24,
-  },
-];
-
 export interface FurnitureDef {
   x: number;
   y: number;
-  type: "table" | "desk" | "couch" | "table_round" | "plant" | "bookshelf";
+  type: "table" | "desk" | "couch" | "table_round" | "plant" | "bookshelf" | "koi_pond" | "coffee_machine";
   color: number;
   width?: number;
   height?: number;
 }
 
-export const FURNITURE: FurnitureDef[] = [
-  // Room A — conference table
-  { x: 2, y: 3, type: "table", color: 0x78716c, width: 3, height: 1 },
-  // Room B — conference table
-  { x: 25, y: 3, type: "table", color: 0x78716c, width: 3, height: 1 },
-  // Room C — individual desks
-  { x: 2, y: 16, type: "desk", color: 0x92400e },
-  { x: 4, y: 16, type: "desk", color: 0x92400e },
-  // Room D — individual desks
-  { x: 25, y: 16, type: "desk", color: 0x92400e },
-  { x: 27, y: 16, type: "desk", color: 0x92400e },
-  // Lounge — seating arrangement
-  { x: 13, y: 9, type: "couch", color: 0x6366f1, width: 2, height: 1 },
-  { x: 13, y: 11, type: "couch", color: 0x6366f1, width: 2, height: 1 },
-  { x: 16, y: 10, type: "table_round", color: 0x78716c },
-  // Decorative plants
-  { x: 8, y: 1, type: "plant", color: 0x22c55e },
-  { x: 21, y: 1, type: "plant", color: 0x22c55e },
-  { x: 8, y: 18, type: "plant", color: 0x22c55e },
-  { x: 21, y: 18, type: "plant", color: 0x22c55e },
-  { x: 10, y: 7, type: "plant", color: 0x16a34a },
-  { x: 19, y: 7, type: "plant", color: 0x16a34a },
-  { x: 10, y: 12, type: "plant", color: 0x16a34a },
-  { x: 19, y: 12, type: "plant", color: 0x16a34a },
-  // Bookshelves along walls
-  { x: 9, y: 0, type: "bookshelf", color: 0x92400e },
-  { x: 10, y: 0, type: "bookshelf", color: 0x92400e },
-  { x: 19, y: 0, type: "bookshelf", color: 0x92400e },
-  { x: 20, y: 0, type: "bookshelf", color: 0x92400e },
-];
+function generateMapData() {
+  const zones: ZoneDef[] = [
+    // Offices (Row of 3 on the left)
+    { id: "office_1", label: "Office 1", bounds: { x1: 15, y1: 12, x2: 24, y2: 22 }, doorTile: { x: 19, y: 23 }, color: 0xe2e8f0, labelColor: 0x64748b },
+    { id: "office_2", label: "Office 2", bounds: { x1: 25, y1: 12, x2: 34, y2: 22 }, doorTile: { x: 29, y: 23 }, color: 0xe2e8f0, labelColor: 0x64748b },
+    { id: "office_3", label: "Office 3", bounds: { x1: 35, y1: 12, x2: 44, y2: 22 }, doorTile: { x: 39, y: 23 }, color: 0xe2e8f0, labelColor: 0x64748b },
+    
+    // Meeting Rooms (Right Side)
+    { id: "meeting_large", label: "Boardroom", bounds: { x1: 48, y1: 26, x2: 65, y2: 38 }, doorTile: { x: 47, y: 32 }, color: 0xe2e8f0, labelColor: 0x64748b },
+    { id: "meeting_casual", label: "Huddle Room", bounds: { x1: 48, y1: 12, x2: 65, y2: 22 }, doorTile: { x: 47, y: 17 }, color: 0xe2e8f0, labelColor: 0x64748b },
+    
+    // Open Areas (No doors)
+    { id: "team_area", label: "Coworking: Team", bounds: { x1: 15, y1: 26, x2: 44, y2: 45 }, doorTile: { x: -1, y: -1 }, color: 0xf8fafc, labelColor: 0x64748b },
+    { id: "lobby", label: "Coworking: Lobby", bounds: { x1: 2, y1: 26, x2: 12, y2: 38 }, doorTile: { x: -1, y: -1 }, color: 0xf8fafc, labelColor: 0x64748b },
+    { id: "koi_pond", label: "Coworking: Koi Pond", bounds: { x1: 15, y1: 2, x2: 44, y2: 10 }, doorTile: { x: -1, y: -1 }, color: 0xdcfce7, labelColor: 0x64748b },
+    { id: "break_area", label: "Kitchen", bounds: { x1: 2, y1: 12, x2: 12, y2: 22 }, doorTile: { x: -1, y: -1 }, color: 0xf8fafc, labelColor: 0x64748b },
+  ];
+
+  const furniture: FurnitureDef[] = [];
+  
+  // Office 1
+  furniture.push({ x: 18, y: 16, type: "desk", color: 0xd97706, width: 4, height: 2 });
+  furniture.push({ x: 23, y: 13, type: "plant", color: 0x16a34a });
+  // Office 2
+  furniture.push({ x: 28, y: 16, type: "desk", color: 0xd97706, width: 4, height: 2 });
+  furniture.push({ x: 33, y: 13, type: "plant", color: 0x16a34a });
+  // Office 3
+  furniture.push({ x: 38, y: 16, type: "desk", color: 0xd97706, width: 4, height: 2 });
+  furniture.push({ x: 43, y: 13, type: "plant", color: 0x16a34a });
+
+  // Team Area (Banks of Desks)
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 3; col++) {
+      furniture.push({ x: 18 + col * 8, y: 30 + row * 8, type: "desk", color: 0xd97706, width: 4, height: 2 });
+    }
+  }
+  
+  // Large Meeting Room
+  furniture.push({ x: 52, y: 30, type: "table", color: 0xfef08a, width: 8, height: 4 });
+  
+  // Casual Meeting Room
+  furniture.push({ x: 55, y: 16, type: "table_round", color: 0xe2e8f0 });
+  furniture.push({ x: 62, y: 13, type: "bookshelf", color: 0x1e293b, width: 2, height: 1 });
+
+  // Lobby
+  furniture.push({ x: 5, y: 31, type: "table", color: 0xd97706, width: 4, height: 2 });
+  furniture.push({ x: 5, y: 29, type: "couch", color: 0x475569, width: 4, height: 1 });
+  furniture.push({ x: 3, y: 31, type: "couch", color: 0x475569, width: 1, height: 2 });
+  furniture.push({ x: 10, y: 31, type: "couch", color: 0x475569, width: 1, height: 2 });
+  
+  // Koi Pond
+  furniture.push({ x: 28, y: 4, type: "koi_pond", color: 0x38bdf8, width: 6, height: 4 });
+  furniture.push({ x: 26, y: 6, type: "plant", color: 0x15803d });
+  furniture.push({ x: 35, y: 6, type: "plant", color: 0x15803d });
+  
+  // Kitchen
+  furniture.push({ x: 3, y: 13, type: "coffee_machine", color: 0x334155, width: 4, height: 2 });
+  furniture.push({ x: 5, y: 18, type: "table_round", color: 0x94a3b8 });
+  furniture.push({ x: 9, y: 18, type: "table_round", color: 0x94a3b8 });
+
+  return { zones, furniture };
+}
+
+const mapData = generateMapData();
+export const ZONES = mapData.zones;
+export const FURNITURE = mapData.furniture;
 
 export const COLORS = {
-  FLOOR_A: 0xf8fafc,
-  FLOOR_B: 0xf1f5f9,
-  WALL: 0xe2e8f0,
-  WALL_FACE: 0xcbd5e1,
-  GRID_LINE: 0xe2e8f0,
+  FLOOR_A: 0xffedd5, // warm beige floor
+  GRID_LINE: 0xfed7aa,
+  WALL: 0xd6d3d1, // Light warm stone wall
+  WALL_FACE: 0xa8a29e,
   DOOR_GLOW: 0xf59e0b,
 };
 
@@ -108,6 +101,7 @@ export function generateCollisionGrid(): number[][] {
     new Array(MAP_WIDTH).fill(0)
   );
 
+  // Borders
   for (let x = 0; x < MAP_WIDTH; x++) {
     grid[0][x] = 1;
     grid[MAP_HEIGHT - 1][x] = 1;
@@ -117,14 +111,7 @@ export function generateCollisionGrid(): number[][] {
     grid[y][MAP_WIDTH - 1] = 1;
   }
 
-  function addRoomWalls(
-    x1: number,
-    y1: number,
-    x2: number,
-    y2: number,
-    doorX: number,
-    doorY: number
-  ): void {
+  function addRoomWalls(x1: number, y1: number, x2: number, y2: number, doorX: number, doorY: number): void {
     for (let x = x1; x <= x2; x++) {
       if (y1 >= 0) grid[y1][x] = 1;
       if (y2 < MAP_HEIGHT) grid[y2][x] = 1;
@@ -138,18 +125,11 @@ export function generateCollisionGrid(): number[][] {
     }
   }
 
-  // Room A walls (boundary: cols 0-6, rows 0-6, door at col 6 row 3)
-  addRoomWalls(0, 0, 6, 6, 6, 3);
-  grid[4][6] = 0; // Widen door A
-  // Room B walls (boundary: cols 23-29, rows 0-6, door at col 23 row 3)
-  addRoomWalls(23, 0, 29, 6, 23, 3);
-  grid[4][23] = 0; // Widen door B
-  // Room C walls (boundary: cols 0-6, rows 13-19, door at col 6 row 16)
-  addRoomWalls(0, 13, 6, 19, 6, 16);
-  grid[15][6] = 0; // Widen door C
-  // Room D walls (boundary: cols 23-29, rows 13-19, door at col 23 row 16)
-  addRoomWalls(23, 13, 29, 19, 23, 16);
-  grid[15][23] = 0; // Widen door D
+  ZONES.forEach(zone => {
+    if (zone.id === "team_area" || zone.id === "lobby" || zone.id === "koi_pond" || zone.id === "break_area") return;
+    const b = zone.bounds;
+    addRoomWalls(b.x1 - 1, b.y1 - 1, b.x2 + 1, b.y2 + 1, zone.doorTile.x, zone.doorTile.y);
+  });
 
   for (const f of FURNITURE) {
     const w = f.width ?? 1;
@@ -180,10 +160,7 @@ export function getZoneAtTile(tileX: number, tileY: number): string | null {
   return null;
 }
 
-export function getFurnitureAt(
-  tileX: number,
-  tileY: number
-): FurnitureDef | null {
+export function getFurnitureAt(tileX: number, tileY: number): FurnitureDef | null {
   for (const f of FURNITURE) {
     const w = f.width ?? 1;
     const h = f.height ?? 1;

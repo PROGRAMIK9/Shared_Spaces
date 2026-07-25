@@ -9,5 +9,8 @@
     "dev:web": "npm run dev --workspace=apps/web",
     "dev:server": "npm run dev --workspace=apps/server",
     "dev": "npx concurrently \"npm run dev:server\" \"npm run dev:web\""
+  },
+  "dependencies": {
+    "react-rnd": "^10.5.3"
   }
 }

@@ -16,7 +16,7 @@ export class PathfindingManager {
     this.easyStar.setAcceptableTiles([0]);
     this.easyStar.enableDiagonals();
     this.easyStar.disableCornerCutting();
-    this.easyStar.setIterationsPerCalculation(1000);
+    this.easyStar.setIterationsPerCalculation(Number.MAX_SAFE_INTEGER);
   }
 
   findPath(
